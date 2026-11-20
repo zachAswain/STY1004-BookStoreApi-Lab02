@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BookStoreApi.Models;
 using BookStoreApi.Services;
 
@@ -53,6 +54,51 @@ books.MapPost("/", async (Book newBook, BooksService service) =>
     await service.CreateAsync(newBook);
     return Results.Created($"/books/{newBook.Id}", newBook);
 });
+
+// POST /books/upload
+books.MapPost("/upload", async (IFormFile file, BooksService service) =>
+{
+    // 1. Must be a JSON file
+    if (!Path.GetExtension(file.FileName).Equals(".json", StringComparison.OrdinalIgnoreCase))
+    {
+        return Results.BadRequest("File ,ust be a .json file."); 
+    }
+
+    // 2. Must be a valid JSON that turns into a list of books
+    List<Book>? newBooks;
+    try
+    {
+        using var stream = file.OpenReadStream();
+        newBooks = await JsonSerializer.DeserializeAsync<List<Book>>(stream);
+    }
+    catch (JsonException)
+    {
+        return Results.BadRequest("File is not a valid JSON.");
+    }
+
+    if (newBooks is null || newBooks.Count == 0)
+    {
+        return Results.BadRequest("File has no books.");
+    }
+
+    //3. Check every book BEFORE inserting anything
+    var invalidBooks = newBooks
+        .Where(b => string.IsNullOrWhiteSpace(b.BookName)
+                 || string.IsNullOrWhiteSpace(b.Category)
+                 || string.IsNullOrWhiteSpace(b.Author)
+                 || b.Price <= 0)
+        .ToList();
+
+        if (invalidBooks.Count > 0)
+    {
+        return Results.BadRequest(new {Message = "No books were inserted.", InvalidBooks = invalidBooks});
+    }
+
+    // 4. All valid: insert them all at once
+    var ids = await service.CreateManyAsync(newBooks);
+    return Results.Ok(new {Inserted = ids.Count, Ids = ids});
+})
+.DisableAntiforgery();
 
 // PUT /books/{id}
 books.MapPut("/{id:length(24)}", async (string id, Book updatedBook, BooksService service) =>

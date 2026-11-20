@@ -19,6 +19,12 @@ public class BooksService(IOptions<BookStoreDatabaseSettings> bookStoreDatabaseS
     public async Task CreateAsync(Book newBook) =>
         await _booksCollection.InsertOneAsync(newBook);
 
+    public async Task<List<string>> CreateManyAsync(List<Book> newBooks)
+    {
+        await _booksCollection.InsertManyAsync(newBooks);
+        return newBooks.Select(b => b.Id!).ToList();
+    }
+
     public async Task UpdateAsync(string id, Book updatedBook) =>
         await _booksCollection.ReplaceOneAsync(x => x.Id == id, updatedBook);
 
