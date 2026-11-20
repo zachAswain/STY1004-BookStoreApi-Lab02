@@ -98,12 +98,7 @@ books.MapPost("/upload", async (IFormFile file, BooksService service) =>
     }
 
     //3. Check every book BEFORE inserting anything
-    var invalidBooks = newBooks
-        .Where(b => string.IsNullOrWhiteSpace(b.BookName)
-                 || string.IsNullOrWhiteSpace(b.Category)
-                 || string.IsNullOrWhiteSpace(b.Author)
-                 || b.Price <= 0)
-        .ToList();
+    var invalidBooks = service.GetInvalidBooks(newBooks);
 
         if (invalidBooks.Count > 0)
     {
@@ -129,6 +124,12 @@ books.MapPut("/{id:length(24)}", async (string id, Book updatedBook, BooksServic
     await service.UpdateAsync(id, updatedBook);
     return Results.NoContent();
 });
+
+// PATCH /books/{id}/price
+books.MapPatch("/{id:length(24)}/price", async (string id, PriceUpdate body, BooksService service) =>
+    await service.UpdatePriceAsync(id, body.Price)
+        ? Results.NoContent()
+        : Results.NotFound());
 
 // DELETE /books/{id}
 books.MapDelete("/{id:length(24)}", async (string id, BooksService service) =>

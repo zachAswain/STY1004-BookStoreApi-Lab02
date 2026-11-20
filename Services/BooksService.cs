@@ -51,6 +51,21 @@ public class BooksService(IOptions<BookStoreDatabaseSettings> bookStoreDatabaseS
     public async Task UpdateAsync(string id, Book updatedBook) =>
         await _booksCollection.ReplaceOneAsync(x => x.Id == id, updatedBook);
 
+    public async Task<bool> UpdatePriceAsync(string id, decimal price)
+    {
+        var update = Builders<Book>.Update.Set(b => b.Price, price);
+        var result = await _booksCollection.UpdateOneAsync(b => b.Id == id, update);
+        return result.MatchedCount > 0;
+    }
+
     public async Task RemoveAsync(string id) =>
         await _booksCollection.DeleteOneAsync(x => x.Id == id);
+    
+    public List<Book> GetInvalidBooks(List<Book> books) =>
+    books.Where(b => string.IsNullOrWhiteSpace(b.BookName)
+                  || string.IsNullOrWhiteSpace(b.Category)
+                  || string.IsNullOrWhiteSpace(b.Author)
+                  || b.Price <= 0)
+         .ToList();
 }
+
