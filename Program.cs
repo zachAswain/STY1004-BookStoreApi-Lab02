@@ -77,7 +77,7 @@ books.MapPost("/upload", async (IFormFile file, BooksService service) =>
     // 1. Must be a JSON file
     if (!Path.GetExtension(file.FileName).Equals(".json", StringComparison.OrdinalIgnoreCase))
     {
-        return Results.BadRequest("File ,ust be a .json file."); 
+        return Results.BadRequest("File must be a .json file."); 
     }
 
     // 2. Must be a valid JSON that turns into a list of books
