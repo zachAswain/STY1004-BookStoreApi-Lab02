@@ -13,7 +13,8 @@ public class Book
     [BsonElement("Name")]
     [JsonPropertyName("Name")]
     public string BookName { get; set; } = null!;
-
+    
+    [BsonRepresentation(BsonType.Decimal128)]
     public decimal Price { get; set; }
 
     public string Category { get; set; } = null!;

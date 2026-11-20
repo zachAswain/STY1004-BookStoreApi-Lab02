@@ -16,6 +16,22 @@ public class BooksService(IOptions<BookStoreDatabaseSettings> bookStoreDatabaseS
     public async Task<Book?> GetAsync(string id) =>
         await _booksCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
+    public async Task<List<Book>> SearchAsync(string? category, decimal? minPrice, decimal? maxPrice)
+    {
+        var filter = Builders<Book>.Filter.Empty;
+
+        if (!string.IsNullOrWhiteSpace(category))
+            filter &= Builders<Book>.Filter.Eq(b => b.Category, category);
+
+        if (minPrice.HasValue)
+            filter &= Builders<Book>.Filter.Gte(b => b.Price, minPrice.Value);
+
+        if (maxPrice.HasValue)
+            filter &= Builders<Book>.Filter.Lte(b => b.Price, maxPrice.Value);
+
+        return await _booksCollection.Find(filter).ToListAsync();
+    }
+
     public async Task CreateAsync(Book newBook) =>
         await _booksCollection.InsertOneAsync(newBook);
 

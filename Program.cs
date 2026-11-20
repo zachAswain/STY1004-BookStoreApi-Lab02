@@ -48,6 +48,10 @@ books.MapGet("/{id:length(24)}", async (string id, BooksService service) =>
         ? Results.Ok(book)
         : Results.NotFound());
 
+// GET /books/search?category=&minPrice=&maxPrice=
+books.MapGet("/search", async (string? category, decimal? minPrice, decimal? maxPrice, BooksService service) =>
+    await service.SearchAsync(category, minPrice, maxPrice));
+
 // POST /books
 books.MapPost("/", async (Book newBook, BooksService service) =>
 {
