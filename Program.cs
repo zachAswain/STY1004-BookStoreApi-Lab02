@@ -52,6 +52,18 @@ books.MapGet("/{id:length(24)}", async (string id, BooksService service) =>
 books.MapGet("/search", async (string? category, decimal? minPrice, decimal? maxPrice, BooksService service) =>
     await service.SearchAsync(category, minPrice, maxPrice));
 
+// GET /books/top?count=3
+books.MapGet("/top", async (int? count, BooksService service) =>
+{
+    var n = count ?? 3;
+    if (n <= 0)
+    {
+        return Results.BadRequest("count must be greater than 0.");
+    }
+
+    return Results.Ok(await service.GetTopAsync(n));
+});
+
 // POST /books
 books.MapPost("/", async (Book newBook, BooksService service) =>
 {

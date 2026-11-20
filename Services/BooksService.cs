@@ -32,6 +32,13 @@ public class BooksService(IOptions<BookStoreDatabaseSettings> bookStoreDatabaseS
         return await _booksCollection.Find(filter).ToListAsync();
     }
 
+    public async Task<List<TopBook>> GetTopAsync(int count) =>
+    await _booksCollection.Find(_ => true)
+        .SortByDescending(b => b.Price)
+        .Limit(count)
+        .Project(b => new TopBook { Name = b.BookName, Price = b.Price })
+        .ToListAsync();
+
     public async Task CreateAsync(Book newBook) =>
         await _booksCollection.InsertOneAsync(newBook);
 
